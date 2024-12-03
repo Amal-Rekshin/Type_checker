@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="person.xsl"?>
+<people>
+    <person>
+        <name>Antony Amal Rekshin A</name>
+        <age>25</age>
+        <email>antony.rekshin@example.com</email>
+        <skills>
+            <skill>HTML</skill>
+            <skill>CSS</skill>
+            <skill>JavaScript</skill>
+        </skills>
+    </person>
+    <person>
+        <name>John Doe</name>
+        <age>30</age>
+        <email>john.doe@example.com</email>
+        <skills>
+            <skill>Python</skill>
+            <skill>Java</skill>
+        </skills>
+    </person>
+</people>

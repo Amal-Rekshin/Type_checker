@@ -1,0 +1,523 @@
+1. Downloading and installing Hadoop framework and implement Start-up scripts andConfiguration files.
+Aim
+To download, install, and configure the Hadoop framework for a single-node setup.
+Program
+A simplified Bash script to install Hadoop on a Linux system:
+#!/bin/bash
+# Step 1: Update System
+sudo apt update
+# Step 2: Install Java (required for Hadoop)
+sudo apt install -y openjdk-11-jdk
+# Step 3: Download Hadoop
+wget https://dlcdn.apache.org/hadoop/common/hadoop-3.3.6/hadoop-3.3.6.tar.gz
+# Step 4: Extract Hadoop
+tar -xzf hadoop-3.3.6.tar.gz
+sudo mv hadoop-3.3.6 /usr/local/hadoop
+# Step 5: Set Hadoop Environment Variables
+echo "export HADOOP_HOME=/usr/local/hadoop" >> ~/.bashrc
+echo "export PATH=\$PATH:\$HADOOP_HOME/bin:\$HADOOP_HOME/sbin" >> ~/.bashrc
+echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> ~/.bashrc
+source ~/.bashrc
+# Step 6: Configure Hadoop (core-site.xml)
+cat <<EOT > /usr/local/hadoop/etc/hadoop/core-site.xml
+<configuration>
+<property>
+<name>fs.defaultFS</name>
+<value>hdfs://localhost:9000</value>
+</property>
+</configuration>
+EOT
+# Step 7: Configure HDFS (hdfs-site.xml)
+cat <<EOT > /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+<configuration>
+<property>
+<name>dfs.replication</name>
+<value>1</value>
+</property>
+</configuration>
+EOT
+# Step 8: Format the NameNode
+hdfs namenode -format
+# Step 9: Start Hadoop Services
+start-dfs.sh
+start-yarn.sh
+echo "Hadoop installation and configuration completed."
+Algorithm
+1. Install Prerequisites:
+o Update the system and install Java.
+2. Download Hadoop:
+o Get the latest stable version of Hadoop from the Apache website.
+3. Extract Files:
+o Extract the downloaded archive to the desired directory.
+4. Set Environment Variables:
+o Add HADOOP_HOME, PATH, and JAVA_HOME to the system environment variables.
+5. Configure Core and HDFS Settings:
+o Edit core-site.xml and hdfs-site.xml files for basic setup.
+6. Format NameNode:
+o Initialize the Hadoop filesystem using the namenode -format command.
+7. Start Hadoop Services:
+o Start the Hadoop Distributed File System (DFS) and YARN.
+Expected Output
+After executing the script, you should see:
+1. Hadoop Setup Logs:
+o Logs for downloading, extracting, and configuring Hadoop.
+o Output for hdfs namenode -format, showing the initialization of the filesystem.
+2. Running Services:
+o Output confirming services started:
+o Starting namenodes on [localhost]
+o Starting datanodes
+o Starting secondary namenodes [localhost]
+o Starting resourcemanager
+o Starting nodemanagers
+o Verify running processes using:
+o jps
+Example Output:
+NameNode
+DataNode
+ResourceManager
+NodeManager
+3. Web UI Access:
+o Access Hadoop NameNode UI at http://localhost:9870.
+o Access YARN ResourceManager UI at http://localhost:8088.
+This ensures a clear and functional single-node Hadoop installation.
+
+
+2. Write a JAVA program for Matrix Multiplication with Hadoop Map Reduce
+Aim:
+To multiply two matrices using the Hadoop MapReduce framework.
+Simple Algorithm
+1. Input Preparation:
+o Write Matrix A and Matrix B as input files in the format: MatrixName,Row,Column,Value. Example for Matrix A:
+o A,0,0,1
+o A,0,1,2
+o A,1,0,3
+o A,1,1,4
+
+
+2. Mapper:
+o Read the input file.
+o Emit key-value pairs where the key is the cell in the resulting matrix, and the value is the matrix name, index, and value.
+
+
+3. Reducer:
+o Combine values from Matrix A and B for the same key.
+o Multiply corresponding values and sum them up to compute the result for each cell.
+
+
+4. Output:
+o Write the computed values for the resulting matrix.
+Simple Program
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import java.io.IOException;
+public class SimpleMatrixMultiplication {
+public static class MatrixMapper extends Mapper<Object, Text, Text, Text> {
+public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+String[] parts = value.toString().split(",");
+String matrixName = parts[0];
+int row = Integer.parseInt(parts[1]);
+int col = Integer.parseInt(parts[2]);
+int val = Integer.parseInt(parts[3]);
+Configuration conf = context.getConfiguration();
+int matrixSize = Integer.parseInt(conf.get("matrixSize"));
+if (matrixName.equals("A")) {
+for (int k = 0; k < matrixSize; k++) {
+context.write(new Text(row + "," + k), new Text("A," + col + "," + val));
+}
+} else {
+for (int i = 0; i < matrixSize; i++) {
+context.write(new Text(i + "," + col), new Text("B," + row + "," + val));
+}
+}
+}
+}
+public static class MatrixReducer extends Reducer<Text, Text, Text, IntWritable> {
+public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+int[] a = new int[10];
+int[] b = new int[10];
+for (Text value : values) {
+String[] parts = value.toString().split(",");
+String matrixName = parts[0];
+int index = Integer.parseInt(parts[1]);
+int val = Integer.parseInt(parts[2]);
+if (matrixName.equals("A")) {
+a[index] = val;
+} else {
+b[index] = val;
+}
+}
+int sum = 0;
+for (int i = 0; i < 10; i++) {
+sum += a[i] * b[i];
+}
+context.write(key, new IntWritable(sum));
+}
+}
+public static void main(String[] args) throws Exception {
+Configuration conf = new Configuration();
+conf.set("matrixSize", "2"); // Size of matrices
+Job job = Job.getInstance(conf, "Matrix Multiplication");
+job.setJarByClass(SimpleMatrixMultiplication.class);
+job.setMapperClass(MatrixMapper.class);
+job.setReducerClass(MatrixReducer.class);
+job.setOutputKeyClass(Text.class);
+job.setOutputValueClass(Text.class);
+FileInputFormat.addInputPath(job, new Path(args[0]));
+FileOutputFormat.setOutputPath(job, new Path(args[1]));
+System.exit(job.waitForCompletion(true) ? 0 : 1);
+}
+}
+Input Example
+Matrix A:
+A,0,0,1
+A,0,1,2
+A,1,0,3
+A,1,1,4
+Matrix B:
+B,0,0,5
+B,0,1,6
+B,1,0,7
+B,1,1,8
+Output Example
+Result of Matrix A × Matrix B:
+0,0 19
+0,1 22
+1,0 43
+1,1 50
+Steps to Execute:
+1. Save the code in SimpleMatrixMultiplication.java.
+2. Compile the program:
+3. javac -classpath `hadoop classpath` -d . SimpleMatrixMultiplication.java
+4. jar -cvf MatrixMultiplication.jar *.class
+5. Run the program:
+6. hadoop jar MatrixMultiplication.jar SimpleMatrixMultiplication /input /output
+7. Check the output:
+8. hdfs dfs -cat /output/part-r-00000
+This is an easy-to-follow and functional example for beginners!
+
+
+
+3. Write a command to implement file management tasks, such as Adding files and directories to HDFS
+Aim:
+To add files and directories to Hadoop Distributed File System (HDFS).
+Command:
+1. Add a file to HDFS:
+2. hdfs dfs -put /local/path/to/file /hdfs/destination/path
+3. Add a directory to HDFS:
+4. hdfs dfs -put /local/directory/path /hdfs/destination/path
+5. Create a directory in HDFS:
+6. hdfs dfs -mkdir /hdfs/destination/directory
+4. Write a JAVA program to count the number of characters in a word with Hadoop MapReduce
+Aim:
+To count the number of characters in a given word using Hadoop MapReduce.
+Algorithm:
+1. Mapper: For each input line, output a key-value pair where the key is "Word" and the value is the length of the word.
+2. Reducer: Sum the values received from the Mapper.
+Program:
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import java.io.IOException;
+public class CharacterCount {
+public static class CharMapper extends Mapper<Object, Text, Text, IntWritable> {
+private Text word = new Text();
+private IntWritable count = new IntWritable();
+public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+String str = value.toString();
+word.set("Word");
+count.set(str.length());
+context.write(word, count);
+}
+}
+public static class CharReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+int sum = 0;
+for (IntWritable val : values) {
+sum += val.get();
+}
+context.write(key, new IntWritable(sum));
+}
+}
+public static void main(String[] args) throws Exception {
+Configuration conf = new Configuration();
+Job job = Job.getInstance(conf, "Character Count");
+job.setJarByClass(CharacterCount.class);
+job.setMapperClass(CharMapper.class);
+job.setReducerClass(CharReducer.class);
+job.setOutputKeyClass(Text.class);
+job.setOutputValueClass(IntWritable.class);
+FileInputFormat.addInputPath(job, new Path(args[0]));
+FileOutputFormat.setOutputPath(job, new Path(args[1]));
+System.exit(job.waitForCompletion(true) ? 0 : 1);
+}
+}
+Input:
+Hello
+Output:
+Word 5
+
+
+5. Write a command to implement file management tasks, such as Adding files to HDFS
+Aim:
+To add files to Hadoop Distributed File System (HDFS).
+Command:
+hdfs dfs -put /local/path/to/file /hdfs/destination/path
+
+
+6. Write a JAVA program to count the number of words with Hadoop MapReduce
+Aim:
+To count the number of words in a file using Hadoop MapReduce.
+Algorithm:
+1. Mapper: Tokenize the input lines and emit each word as a key with a value of 1.
+2. Reducer: Sum the values for each word.
+Program:
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import java.io.IOException;
+public class WordCount {
+public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable> {
+private final static IntWritable one = new IntWritable(1);
+private Text word = new Text();
+public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+String[] words = value.toString().split("\\s+");
+for (String str : words) {
+word.set(str);
+context.write(word, one);
+}
+}
+}
+public static class WordCountReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+int sum = 0;
+for (IntWritable val : values) {
+sum += val.get();
+}
+context.write(key, new IntWritable(sum));
+}
+}
+public static void main(String[] args) throws Exception {
+Configuration conf = new Configuration();
+Job job = Job.getInstance(conf, "Word Count");
+job.setJarByClass(WordCount.class);
+job.setMapperClass(TokenizerMapper.class);
+job.setReducerClass(WordCountReducer.class);
+job.setOutputKeyClass(Text.class);
+job.setOutputValueClass(IntWritable.class);
+FileInputFormat.addInputPath(job, new Path(args[0]));
+FileOutputFormat.setOutputPath(job, new Path(args[1]));
+System.exit(job.waitForCompletion(true) ? 0 : 1);
+}
+}
+Input:
+Hello Hadoop Hello World
+Output:
+Hello 2
+Hadoop 1
+World 1
+
+
+7. Write a command to implement file management tasks, such as deleting files from HDFS
+Aim:
+To delete files from HDFS.
+Command:
+hdfs dfs -rm /hdfs/path/to/file
+To delete a directory:
+hdfs dfs -rm -r /hdfs/path/to/directory
+
+
+8. Write a HQL command
+A. To create a table as employees with fields eid, ename, eage, edepartment:
+CREATE TABLE employees (
+eid INT,
+ename STRING,
+eage INT,
+edepartment STRING
+);
+B. Load data into the table:
+LOAD DATA INPATH '/path/to/data' INTO TABLE employees;
+C. Display the table content:
+SELECT * FROM employees;
+
+
+9. Write a HIVE DDL command
+Aim:
+To define the structure of a Hive table.
+Example:
+CREATE TABLE employee (
+eid INT,
+ename STRING,
+eage INT,
+edepartment STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+
+10. Write a HIVE DML command
+Aim:
+To manipulate data in Hive.
+Example:
+INSERT INTO TABLE employee VALUES (1, 'John', 30, 'HR');
+11. Write and execute the following HIVE commands
+1. CREATE:
+2. CREATE TABLE employees (eid INT, ename STRING);
+3. SHOW:
+4. SHOW TABLES;
+5. DESCRIBE:
+6. DESCRIBE employees;
+7. USE:
+8. USE database_name;
+9. DROP:
+10. DROP TABLE employees;
+11. ALTER:
+12. ALTER TABLE employees ADD COLUMNS (eage INT);
+13. TRUNCATE:
+14. TRUNCATE TABLE employees;
+
+
+12. Write a JAVA program for multiplication of two numbers with Hadoop MapReduce
+Aim:
+To multiply two numbers using Hadoop MapReduce.
+Program:
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import java.io.IOException;
+public class Multiplication {
+public static class MultiplyMapper extends Mapper<Object, Text, Text, IntWritable> {
+public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+String[] numbers = value.toString().split(",");
+int num1 = Integer.parseInt(numbers[0]);
+int num2 = Integer.parseInt(numbers[1]);
+context.write(new Text("Multiplication Result"), new IntWritable(num1 * num2));
+}
+}
+public static class MultiplyReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+for (IntWritable val : values) {
+context.write(key, val);
+}
+}
+}
+public static void main(String[] args) throws Exception {
+Configuration conf = new Configuration();
+Job job = Job.getInstance
+(conf, "Multiplication"); job.setJarByClass(Multiplication.class); job.setMapperClass(MultiplyMapper.class); job.setReducerClass(MultiplyReducer.class); job.setOutputKeyClass(Text.class); job.setOutputValueClass(IntWritable.class);
+FileInputFormat.addInputPath(job, new Path(args[0]));
+FileOutputFormat.setOutputPath(job, new Path(args[1]));
+System.exit(job.waitForCompletion(true) ? 0 : 1);
+}
+}
+#### **Input**:
+3,4
+#### **Output**:
+Multiplication Result 12
+---
+
+
+
+### 13. **Write a JAVA program for addition of two numbers with Hadoop MapReduce
+#### Aim:
+To add two numbers using Hadoop MapReduce.
+#### Program:
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import java.io.IOException;
+public class Addition {
+// Mapper class
+public static class AddMapper extends Mapper<Object, Text, Text, IntWritable> {
+public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+// Split the input line by commas
+String[] numbers = value.toString().split(",");
+int num1 = Integer.parseInt(numbers[0]);
+int num2 = Integer.parseInt(numbers[1]);
+// Emit the key-value pair with "Addition Result" as key and sum of numbers as value
+context.write(new Text("Addition Result"), new IntWritable(num1 + num2));
+}
+}
+// Reducer class
+public static class AddReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+// Sum the values for the given key
+int sum = 0;
+for (IntWritable val : values) {
+sum += val.get();
+}
+// Emit the result
+context.write(key, new IntWritable(sum));
+}
+}
+// Main method to set up the job
+public static void main(String[] args) throws Exception {
+Configuration conf = new Configuration();
+Job job = Job.getInstance(conf, "Addition");
+job.setJarByClass(Addition.class);
+job.setMapperClass(AddMapper.class);
+job.setReducerClass(AddReducer.class);
+job.setOutputKeyClass(Text.class);
+job.setOutputValueClass(IntWritable.class);
+// Set input and output paths
+FileInputFormat.addInputPath(job, new Path(args[0]));
+FileOutputFormat.setOutputPath(job, new Path(args[1]));
+System.exit(job.waitForCompletion(true) ? 0 : 1);
+}
+}
+Input:
+3,4
+Output:
+Addition Result 7
+
+
+
+14. Write a command to implement file management tasks in HDFS
+Command:
+hdfs dfs -put /local/file /hdfs/path
+hdfs dfs -rm /hdfs/file
+hdfs dfs -mkdir /hdfs/directory
+15. Write and execute the following HIVE commands
+A. UPDATE:
+UPDATE employees SET eage = 35 WHERE eid = 1;
+B. EXPORT:
+EXPORT TABLE employees TO 'hdfs://path';
+C. IMPORT:
+IMPORT TABLE employees FROM 'hdfs://path';
+D. SORT BY:
+SELECT * FROM employees SORT BY eage;
+E. DISTRIBUTE BY:
+SELECT * FROM employees DISTRIBUTE BY edepartment;
+F. CLUSTER BY:
+SELECT * FROM employees CLUSTER BY edepartment;
+These answers should cover the aim, algorithm, program, and output for each task. Let me know if you need further assistance!

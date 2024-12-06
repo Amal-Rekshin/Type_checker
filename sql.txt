@@ -1,0 +1,72 @@
+Below is the SQL equivalent for the operations you listed. Each command performs similar operations as in Hive but is written in SQL.
+
+---
+
+### 1. *UPDATE*
+In SQL, you can update records in a table using the UPDATE statement.
+
+sql
+UPDATE students
+SET grade = 'A'
+WHERE marks > 90;
+
+
+### 2. *EXPORT*
+In SQL, "exporting" is typically done by selecting data and writing it to an external file or table. Here is an example:
+
+sql
+SELECT * FROM students
+INTO OUTFILE '/path/to/exported_file.csv'
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+
+---
+
+### 3. *IMPORT*
+In SQL, importing data is often done using the LOAD DATA statement.
+
+sql
+LOAD DATA INFILE '/path/to/import_file.csv'
+INTO TABLE students
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+
+---
+
+### 4. *SORT BY*
+To sort data in SQL, you can use the ORDER BY clause.
+
+sql
+SELECT * FROM students
+ORDER BY marks DESC;
+
+
+---
+
+### 5. *DISTRIBUTE BY*
+In SQL, you can achieve distribution using partitioning. Here's an example:
+
+sql
+SELECT *, NTILE(4) OVER (ORDER BY marks DESC) AS distribution
+FROM students;
+
+
+---
+
+### 6. *CLUSTER BY*
+In SQL, clustering can be simulated by combining PARTITION BY and ORDER BY. 
+
+sql
+SELECT * 
+FROM students
+ORDER BY subject, marks;
+
+
+---
+
+### Execute the Commands
+Since I cannot directly execute SQL here, you can run the above commands in a database like MySQL, PostgreSQL, or any SQL-based tool. Let me know which platform you're using, and I can guide you on how to execute these!

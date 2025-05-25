@@ -1,0 +1,80 @@
+wsl -d Ubuntu
+
+sudo apt update
+sudo apt install -y curl git docker docker-compose build-essential jq
+
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+node -v
+npm -v
+docker -v
+docker-compose version
+
+sudo apt install docker.io docker-compose -y
+sudo systemctl start docker
+sudo systemctl enable docker
+
+sudo apt install openjdk-11-jdk -y
+
+sudo apt install nodejs npm -y
+
+cd fabric-samples/test-network
+./network.sh up createChannel
+
+curl -sSL https://bit.ly/2ysbOFE | bash -s
+
+./network.sh up
+
+./network.sh createChannel
+
+./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go -ccl go
+
+
+
+
+
+
+
+train.arff 
+@relation weather
+
+@attribute outlook {sunny, overcast, rainy}
+@attribute temperature {hot, mild, cool}
+@attribute humidity {high, normal}
+@attribute windy {TRUE, FALSE}
+@attribute play {yes, no}
+
+@data
+sunny, hot, high, FALSE, no
+sunny, hot, high, TRUE, no
+overcast, hot, high, FALSE, yes
+rainy, mild, high, FALSE, yes
+rainy, cool, normal, FALSE, yes
+rainy, cool, normal, TRUE, no
+overcast, cool, normal, TRUE, yes
+sunny, mild, high, FALSE, no
+sunny, cool, normal, FALSE, yes
+rainy, mild, normal, FALSE, yes
+sunny, mild, normal, TRUE, yes
+overcast, mild, high, TRUE, yes
+overcast, hot, normal, FALSE, yes
+rainy, mild, high, TRUE, no
+
+
+test.arff 
+@relation weather
+
+@attribute outlook {sunny, overcast, rainy}
+@attribute temperature {hot, mild, cool}
+@attribute humidity {high, normal}
+@attribute windy {TRUE, FALSE}
+@attribute play {yes, no}
+
+@data
+sunny, cool, high, TRUE, no
+overcast, mild, normal, FALSE, yes
+rainy, hot, normal, FALSE, yes
+sunny, mild, normal, FALSE, yes
+overcast, cool, high, TRUE, yes
+rainy, cool, high, TRUE, no

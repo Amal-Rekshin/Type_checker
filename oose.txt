@@ -1,0 +1,58 @@
+class diagram:
+
+------------------------
+|  stock dealer        |
+-----------------------
+|  take order:integer  |
+|  enterdetails        |
+|  verifydetails       |
+-----------------------|
+|  delivr item()       |
+-----------------------
+        |  
+        |
+        |
+--------------------------
+|  central stock system  |
+--------------------------
+|  newAlttr : integer    |
+--------------------------
+|  printbill()           |
+|  deliver_product()     |
+--------------------------
+        |
+        |
+        |
+---------------------------
+|  customer               |
+---------------------------
+|  placeorder : integer   |
+---------------------------
+|  payment()              |
+---------------------------
+
+Usecase diagram:
+
+              purchase order
+              verification of order          central stock system
+customer      payment                                |
+              delivery of items                stock dealer
+
+
+
+sequence diagram:
+
+
+ customer                                            stockdealer                                          central stock system
+   |               purchase order   ->                     |              verify order    ->                        |
+   |               give payment detail     <...            |              order valid  ...<                         |
+   |               payment     ->                          |              enter payment       ->                    |
+   |               delivery     ...<                       |              print bill     ...>                       |
+
+
+
+statechart 
+
+start ---->  check stock ---->  give order ------>  purchase goods -----> check goods  -------> pay money ------->end
+
+

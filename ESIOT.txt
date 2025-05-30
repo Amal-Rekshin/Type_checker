@@ -130,15 +130,12 @@ import time
 led_pin = 17
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(led_pin, GPIO.OUT)
-try:
-    while True:
-        GPIO.output(led_pin, GPIO.HIGH) 
-        time.sleep(1)                    
-        GPIO.output(led_pin, GPIO.LOW)  
-        time.sleep(1)                   
-except KeyboardInterrupt:
-    print("\nProgram stopped by user.")
-    GPIO.cleanup()  # Release GPIO resources
+while True:
+  GPIO.output(led_pin, GPIO.HIGH) 
+  time.sleep(1)                    
+  GPIO.output(led_pin, GPIO.LOW)  
+  time.sleep(1)                   
+
 
 
 9. Python: Ultrasonic Sensor (HC-SR04) with Raspberry Pi

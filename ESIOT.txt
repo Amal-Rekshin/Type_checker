@@ -1,3 +1,47 @@
+1st program
+
+ORG 0000H
+LOOP:
+  CLR P1.0
+  ACALL DELAY
+  SETB P1.0
+  ACALL DELAY
+  SJMP LOOP
+
+DELAY:
+  MOV R2, #0FFH
+WAIT: DJNZ R2, WAIT
+  RET
+
+
+2nd program
+
+ORG 0x0000
+MAIN:
+  MOV A, #0xAA
+  MOV 0x30, R0
+  MOV A, 0x30
+  MOV R1, A
+  SJMP MAIN
+END
+
+3rd program
+
+ORG 0x0000
+MOV R0, #10
+MOV R1, #5
+ADD A, R0
+MOV R2, A
+SUBB A, R1
+MOV R2, A
+MUL AB
+MOV R2, A
+DIV AB
+HERE:
+  SJMP HERE
+END
+
+
 4. LED Blinking and Pushbutton Control with Arduino
 
 // (i) Blink LED

@@ -42,41 +42,41 @@ void loop() {
 
 6. Servo Motor Control with Arduino
 
-#include <Servo.h>
-Servo myservo;
+#include <Servo.h>    
+Servo myservo;        
 void setup() {
-myservo.attach(9);
+  myservo.attach(9);  
 }
 void loop() {
-myservo.write(0);
-delay(1000);
-myservo.write(90);
-delay(1000);
-myservo.write(180);
-delay(1000);
+  myservo.write(0);    
+  delay(1000);        
+  myservo.write(90);   
+  delay(1000);        
+  myservo.write(180); 
+  delay(1000);  
 }
 
 
 7. DHT11 with Arduino (Temp & Humidity)
 
-#include <DHT.h>
-#define DHTPIN 2
-#define DHTTYPE DHT11
-DHT dht(DHTPIN, DHTTYPE);
+#include <DHT.h>              
+#define DHTPIN 2             
+#define DHTTYPE DHT11         
+DHT dht(DHTPIN, DHTTYPE);     
 void setup() {
-Serial.begin(9600);
-dht.begin();
-}
+  Serial.begin(9600);          
+  dht.begin();            
 void loop() {
-float h = dht.readHumidity();
-float t = dht.readTemperature();
-Serial.print("Humidity: ");
-Serial.print(h);
-Serial.print(" %\tTemperature: ");
-Serial.print(t);
-Serial.println(" *C");
-delay(2000);
+  float h = dht.readHumidity();     
+  float t = dht.readTemperature(); 
+  Serial.print("Humidity: ");
+  Serial.print(h);
+  Serial.print(" %\tTemperature: ");
+  Serial.print(t);
+  Serial.println(" *C");
+  delay(2000);
 }
+
 
 
 8. Python: Blink External LED with Raspberry Pi
@@ -87,41 +87,53 @@ led_pin = 17
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(led_pin, GPIO.OUT)
 try:
-while True:
-GPIO.output(led_pin, GPIO.HIGH)
-time.sleep(1)
-GPIO.output(led_pin, GPIO.LOW)
-time.sleep(1)
+    while True:
+        GPIO.output(led_pin, GPIO.HIGH) 
+        time.sleep(1)                    
+        GPIO.output(led_pin, GPIO.LOW)  
+        time.sleep(1)                   
 except KeyboardInterrupt:
-GPIO.cleanup()
+    print("\nProgram stopped by user.")
+    GPIO.cleanup()  # Release GPIO resources
 
 
 9. Python: Ultrasonic Sensor (HC-SR04) with Raspberry Pi
 
 import RPi.GPIO as GPIO
 import time
+
 TRIG = 23
 ECHO = 24
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(TRIG, GPIO.OUT)
 GPIO.setup(ECHO, GPIO.IN)
+
 try:
-while True:
-GPIO.output(TRIG, False)
-time.sleep(0.5)
-GPIO.output(TRIG, True)
-time.sleep(0.00001)
-GPIO.output(TRIG, False)
-while GPIO.input(ECHO) == 0:
-pulse_start = time.time()
-while GPIO.input(ECHO) == 1:
-pulse_end = time.time()
-pulse_duration = pulse_end - pulse_start
-distance = pulse_duration * 17150
-distance = round(distance, 2)
-print(f"Distance: {distance} cm")
+    while True:
+        GPIO.output(TRIG, False)
+        time.sleep(0.5)
+
+        GPIO.output(TRIG, True)
+        time.sleep(0.00001)
+        GPIO.output(TRIG, False)
+
+        while GPIO.input(ECHO) == 0:
+            pulse_start = time.time()
+
+        while GPIO.input(ECHO) == 1:
+            pulse_end = time.time()
+
+        pulse_duration = pulse_end - pulse_start
+        distance = pulse_duration * 17150  # Speed of sound: 34300 cm/s divided by 2
+        distance = round(distance, 2)
+
+        print(f"Distance: {distance} cm")
+
 except KeyboardInterrupt:
-GPIO.cleanup()
+    print("\nMeasurement stopped by user")
+    GPIO.cleanup()
+
 
 
 10. Python: Send Data to ThingSpeak from Raspberry Pi
@@ -129,27 +141,36 @@ GPIO.cleanup()
 import requests
 import random
 import time
+
 API_KEY = 'YOUR_WRITE_API_KEY'
 URL = 'https://api.thingspeak.com/update'
+
 def send_data(temp):
-response = requests.post(URL, params={'api_key': API_KEY, 'field1': temp})
-print(f"Sent temp={temp}, Response: {response.status_code}")
+    response = requests.post(URL, params={'api_key': API_KEY, 'field1': temp})
+    print(f"Sent temp={temp}, Response: {response.status_code}")
+
 while True:
-temperature = round(random.uniform(25.0, 30.0), 2)
-send_data(temperature)
-time.sleep(15)
+    temperature = round(random.uniform(25.0, 30.0), 2)
+    send_data(temperature)
+    time.sleep(15)
+
 
 
 11. Python: IoT System to Read Temp & Humidity (DHT11 + Raspberry Pi)
 
 import Adafruit_DHT
 import time
+
 sensor = Adafruit_DHT.DHT11
 gpio_pin = 4
+
 while True:
-humidity, temperature = Adafruit_DHT.read_retry(sensor, gpio_pin)
-if humidity is not None and temperature is not None:
-print(f"Temp: {temperature:.1f}°C Humidity: {humidity:.1f}%")
-else:
-print("Sensor failure. Retrying...")
-time.sleep(2)
+    humidity, temperature = Adafruit_DHT.read_retry(sensor, gpio_pin)
+
+    if humidity is not None and temperature is not None:
+        print(f"Temp: {temperature:.1f}°C Humidity: {humidity:.1f}%")
+    else:
+        print("Sensor failure. Retrying...")
+
+    time.sleep(2)
+

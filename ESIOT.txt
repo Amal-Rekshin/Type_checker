@@ -16,13 +16,12 @@ WAIT: DJNZ R2, WAIT
 
 2nd program
 
-ORG 0x0000
-MAIN:
-  MOV A, #0xAA
-  MOV 0x30, R0
-  MOV A, 0x30
-  MOV R1, A
-  SJMP MAIN
+ORG 0000H
+MOV A, #55H
+MOV R0, #30H
+MOV @R0, A
+MOV A, #0AAH
+MOV 40H, A
 END
 
 3rd program
